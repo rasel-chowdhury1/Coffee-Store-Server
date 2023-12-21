@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config()
 const port = process.env.PORT || 3000;
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 //middelware
 app.use(cors());
@@ -37,11 +37,48 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/updateCoffee/:id', async(req,res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await coffeeCollection.findOne(query);
+      res.send(result);
+    })
+
     app.post('/coffee', async(req,res) =>{
       const newCoffee = req.body;
       console.log(newCoffee);
       const result = await coffeeCollection.insertOne(newCoffee);
       res.send(result)
+    })
+
+    app.put('/updateCoffee/:id', async(req,res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const options = {upsert: true}
+      console.log(req.body)
+      const updatedCoffee = req.body;
+
+      const coffee = {
+        $set: {
+          Name: updatedCoffee.Name,
+          Quantity: updatedCoffee.Quantity,
+          Supplier: updatedCoffee.Supplier,
+          Category: updatedCoffee.Category,
+          Taste: updatedCoffee.Taste,
+          Details: updatedCoffee.Details,
+          Photo: updatedCoffee.Photo
+        }
+      }
+
+      const result = await coffeeCollection.updateOne(query, coffee, options)
+      res.send(result);
+    })
+
+    app.delete('/coffee/:id', async(req,res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await coffeeCollection.deleteOne(query);
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
